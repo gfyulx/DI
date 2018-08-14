@@ -9,14 +9,7 @@ import java.io.*;
 import java.util.Map;
 
 
-/**
- * @ClassName: Configuration
- * @Description: 配置hadoop集群相关的配置信息，生成client提交需要的配置。
- * @author: gfyulx
- * @date: 2018/8/14 10:37
- * @Copyright: Fujian Linewell Software Co., Ltd. All rights reserved.
- * 注意：本内容仅限于福建南威软件股份有限公司内部传阅，禁止外泄以及用于其他的商业目的
- */
+
 public class HadoopConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
     protected static String[] HADOOP_SITE_FILES = new String[]
