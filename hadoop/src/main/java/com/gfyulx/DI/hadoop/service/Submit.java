@@ -18,7 +18,6 @@ public class Submit {
 
     public void Submit(String[] configFiles){
         this.config = loadConfigFiles(configFiles);
-
     }
 
     //根据configuration对象提交yarn任务
