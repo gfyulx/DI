@@ -28,8 +28,9 @@ public class loadJarToHDFS {
     private String[] fileList;
     private String dstPath;
 
-    public void loadJarToHDFS(Configuration config) {
-        this.config = config;
+
+    public loadJarToHDFS(Configuration config) {
+        this.config = new Configuration(config);
     }
 
     public boolean load(String[] fileList, String dstPath) throws IOException {

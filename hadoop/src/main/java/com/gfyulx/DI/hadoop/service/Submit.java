@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 import static com.gfyulx.DI.hadoop.service.HadoopConfiguration.loadConfigFiles;
+import com.gfyulx.DI.hadoop.service.util.loadJarToHDFS;
 
 public class Submit {
     private static final Logger LOG = LoggerFactory.getLogger(Submit.class);
@@ -30,8 +31,9 @@ public class Submit {
     }
 
     //是否上传配置文件
-    public void addJar(String[] jarFiles){
-
+    public void addJar(String[] jarFiles,String dstPath)throws IOException{
+        loadJarToHDFS load=new loadJarToHDFS(this.config);
+        load.load(jarFiles,dstPath);
     }
     //提交参数
 }
