@@ -10,6 +10,15 @@ import java.io.IOException;
 import static com.gfyulx.DI.hadoop.service.HadoopConfiguration.loadConfigFiles;
 import com.gfyulx.DI.hadoop.service.util.loadJarToHDFS;
 
+/**
+ * @ClassName:  Submit
+ * @Description: hadoop yarn提交jar任务入口
+ * @author: gfyulx
+ * @date:   2018/8/15 13:58
+ *
+ * @Copyright: 2018 gfyulx
+ *
+ */
 public class Submit {
     private static final Logger LOG = LoggerFactory.getLogger(Submit.class);
     Configuration config;
@@ -17,8 +26,11 @@ public class Submit {
     private String[] jars;
 
 
-    public void Submit(String[] configFiles){
-        this.config = loadConfigFiles(configFiles);
+    public Submit(){
+
+    }
+    public Submit(String[] configFiles){
+        this.config = new Configuration(loadConfigFiles(configFiles));
     }
 
     //根据configuration对象提交yarn任务
@@ -36,4 +48,7 @@ public class Submit {
         load.load(jarFiles,dstPath);
     }
     //提交参数
+    public void jvmParamAdd(String[] args){
+
+    }
 }

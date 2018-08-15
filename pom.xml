@@ -19,7 +19,7 @@
         <module>hadoop</module>
         <module>schedule</module>
         <module>spark</module>
-     </modules>
+    </modules>
     <dependencies>
         <dependency>
             <groupId>org.apache.spark</groupId>
@@ -80,6 +80,21 @@
             </snapshots>
         </repository>
     </repositories>
+    <build>
+        <defaultGoal>clean compile install</defaultGoal>
+        <directory>${basedir}/target</directory>
+        <finalName>DI-${version}</finalName>
 
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

@@ -9,7 +9,15 @@ import java.io.*;
 import java.util.Map;
 
 
-
+/**
+ * @ClassName:  HadoopConfiguration
+ * @Description: hadoop configure
+ * @author: gfyulx
+ * @date:   2018/8/15 14:06
+ *
+ * @Copyright: 2018 gfyulx
+ *
+ */
 public class HadoopConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
     protected static String[] HADOOP_SITE_FILES = new String[]
