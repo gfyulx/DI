@@ -38,19 +38,23 @@ public class loadJarToHDFS {
             return false;
         }
         FileSystem fs = FileSystem.get(this.config);
-        Path hdfsPath = new Path(dstPath);
-        if (!(fs.exists(hdfsPath))) {
-            fs.mkdirs(hdfsPath);
-        }
-        for (String file : fileList) {
-            File f = new File(file);
-            if (f.exists()) {
-                Path localPath=new Path(file);
-                fs.copyFromLocalFile(localPath,hdfsPath);
-                LOG.info("load file:"+file+"to hdfs:"+dstPath);
-            } else {
-                LOG.warn("file not exists!:", file);
+        try {
+            Path hdfsPath = new Path(dstPath);
+            if (!(fs.exists(hdfsPath))) {
+                fs.mkdirs(hdfsPath);
             }
+            for (String file : fileList) {
+                File f = new File(file);
+                if (f.exists()) {
+                    Path localPath = new Path(file);
+                    fs.copyFromLocalFile(localPath, hdfsPath);
+                    LOG.info("load file:" + file + "to hdfs:" + dstPath);
+                } else {
+                    LOG.warn("file not exists!:", file);
+                }
+            }
+        } finally {
+            fs.close();
         }
         return true;
     }
