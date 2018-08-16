@@ -15,11 +15,13 @@
         <hadoop.version>2.6.0</hadoop.version>
         <hive.version>1.2.1</hive.version>
     </properties>
+
     <modules>
         <module>comm</module>
         <module>hadoop</module>
         <module>schedule</module>
         <module>spark</module>
+
     </modules>
     <dependencies>
         <dependency>

@@ -12,6 +12,11 @@
     <artifactId>gfyulx-hadoop</artifactId>
     <dependencies>
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.3.3</version>
+        </dependency>
+        <dependency>
             <groupId>com.gfyulx</groupId>
             <artifactId>comm</artifactId>
             <version>${version}</version>

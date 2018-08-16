@@ -13,5 +13,8 @@
         <module name="gfyulx-spark" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="src" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

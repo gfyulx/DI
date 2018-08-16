@@ -76,12 +76,12 @@ public class HiveSqlDeploy extends Submit {
             arguments.add("-n");
             arguments.add(name);
             String password = resource.getString("user.password");
-            arguments.add("-u");
-            //暂时不清楚怎么处理
-            if (password == null) {
-                password = "";
+
+            if (password != null) {
+                arguments.add("-p");
+                arguments.add(password);
             }
-            arguments.add(password);
+
         } catch (MissingResourceException er) {
             LOG.error("hive conf not found prop:" + er, er);
         }
@@ -97,21 +97,22 @@ public class HiveSqlDeploy extends Submit {
         String vars = resource.getString("hive.vars");
         String[] splitVars=vars.split("\\s{1,}|\t");
         for(String var:splitVars){
-            arguments.add("--hivevar");
-            arguments.add(var);
+            if (var.length()>0) {
+                arguments.add("--hivevar");
+                arguments.add(var);
+            }
         }
         arguments.add("-a");
         arguments.add("delegationToken");
         LOG.info("geneteror hive parater:"+arguments);
+        //System.out.println(arguments);
 
         //固定配置，用于获取特定类别的yarn调度子进程ID获取
         arguments.add("--hiveconf");
         arguments.add("mapreduce.job.tags=" + this.MAPREDUCE_JOB_TAGS);
 
         //用于获取实际运行在yarn上的jobid
-        logFile=new String("hivejob"+System.currentTimeMillis()+".log");
-
-
+        logFile=new String("hivejob_"+System.currentTimeMillis()+".log");
         //runBeeline
         try {
             runBeeline(arguments.toArray(new String[arguments.size()]), logFile);
@@ -123,8 +124,11 @@ public class HiveSqlDeploy extends Submit {
     private void runBeeline(String[] args, String logFile) throws Exception {
         // We do this instead of calling BeeLine.main so we can duplicate the error stream for harvesting Hadoop child job IDs
         BeeLine beeLine = new BeeLine();
-        beeLine.setErrorStream(new PrintStream(new TeeOutputStream(System.err, new FileOutputStream(logFile))));
+        //beeLine.setErrorStream(new PrintStream(new TeeOutputStream(System.err, new FileOutputStream(logFile))));
+        //测试获取所有的输出结果
+        beeLine.setOutputStream(new PrintStream(new TeeOutputStream(System.out, new FileOutputStream(logFile)),true));
         int status = beeLine.begin(args, null);
+
         if (status != 0) {
             System.exit(status);
         }
