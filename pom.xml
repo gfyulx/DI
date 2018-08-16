@@ -13,6 +13,7 @@
         <spark.version>1.6.0</spark.version>
         <scala.version>2.10</scala.version>
         <hadoop.version>2.6.0</hadoop.version>
+        <hive.version>1.2.1</hive.version>
     </properties>
     <modules>
         <module>comm</module>
@@ -83,7 +84,7 @@
     <build>
         <defaultGoal>clean compile install</defaultGoal>
         <directory>${basedir}/target</directory>
-        <finalName>DI-${version}</finalName>
+        <finalName>DI-${artifactId}-${version}</finalName>
 
         <plugins>
             <plugin>

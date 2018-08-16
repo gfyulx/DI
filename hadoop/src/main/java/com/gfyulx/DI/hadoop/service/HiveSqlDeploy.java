@@ -2,15 +2,20 @@ package com.gfyulx.DI.hadoop.service;
 
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.gfyulx.DI.common.*;
+import org.apache.commons.io.output.TeeOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.commons.io.FileUtils;
+import org.apache.hive.beeline.BeeLine;
+
 /**
  * @ClassName: HiveSqlDeploy
  * @Description: 提交一个hql 语句到集群上
@@ -43,6 +48,8 @@ public class HiveSqlDeploy extends Submit {
         DISALLOWED_BEELINE_OPTIONS.add("-a");
         DISALLOWED_BEELINE_OPTIONS.add("--help");
     }
+    public static final String MAPREDUCE_JOB_TAGS = "DI.hive.mr.tags";
+    public String logFile;
 
     private String HQL = "";
 
@@ -58,7 +65,7 @@ public class HiveSqlDeploy extends Submit {
     //jdbcurl
     //username
     //password
-    public void hiveInit(String hiveConf) throws IOException {
+    public void hiveInit(String hiveConf) throws Exception {
         List<String> arguments = new ArrayList<>();
         ResourceBundle resource = ResourceBundle.getBundle(hiveConf);
         try {
@@ -97,7 +104,30 @@ public class HiveSqlDeploy extends Submit {
         arguments.add("delegationToken");
         LOG.info("geneteror hive parater:"+arguments);
 
-        //runBeeline(arguments.toArray(new String[arguments.size()]), logFile);
+        //固定配置，用于获取特定类别的yarn调度子进程ID获取
+        arguments.add("--hiveconf");
+        arguments.add("mapreduce.job.tags=" + this.MAPREDUCE_JOB_TAGS);
+
+        //用于获取实际运行在yarn上的jobid
+        logFile=new String("hivejob"+System.currentTimeMillis()+".log");
+
+
+        //runBeeline
+        try {
+            runBeeline(arguments.toArray(new String[arguments.size()]), logFile);
+        }//TODO need to catch exception like permession and so on
+        finally {
+            System.out.println("\n<<< Invocation of Beeline command completed <<<\n");
+        }
+    }
+    private void runBeeline(String[] args, String logFile) throws Exception {
+        // We do this instead of calling BeeLine.main so we can duplicate the error stream for harvesting Hadoop child job IDs
+        BeeLine beeLine = new BeeLine();
+        beeLine.setErrorStream(new PrintStream(new TeeOutputStream(System.err, new FileOutputStream(logFile))));
+        int status = beeLine.begin(args, null);
+        if (status != 0) {
+            System.exit(status);
+        }
     }
 
     private String createHQLFile(String query) throws IOException {

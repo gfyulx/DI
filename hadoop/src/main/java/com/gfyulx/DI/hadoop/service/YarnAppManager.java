@@ -12,6 +12,8 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @ClassName:  YarnAppManager
@@ -68,6 +70,15 @@ public class YarnAppManager {
             throw new RuntimeException("Exception occurred while query job", ioe);
         }
         return appReport;
+    }
+    /**
+     * TODO 通过org.apache.hadoop.yarn.api.protocolrecords.GetApplicationsRequest;
+     * 类查询特定MAPREDUCE_JOB_TAGS 标志和起止时间获取某个提交的Jobid的所有子yarn进程。
+     *
+     *  */
+    private static Set<ApplicationId> getChildYarnJobs(Configuration actionConf) {
+        Set<ApplicationId> childYarnJobs = new HashSet<ApplicationId>();
+        return childYarnJobs;
     }
 
 }

@@ -5,7 +5,7 @@ import org.apache.hadoop.io.Text;
 
 /**
  * @ClassName: ReplaceString
- * @Description: TODO (这里用一句话描述这个类的作用)
+ * @Description: 自定义字符串替换函数
  * @author: gfyulx
  * @date: 2018/8/15 10:17
  * @Copyright: 2018 gfyulx
