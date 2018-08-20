@@ -13,6 +13,7 @@ import com.gfyulx.DI.hadoop.service.util.loadJarToHDFS;
 /**
  * @ClassName:  Submit
  * @Description: hadoop yarn提交jar任务入口
+ * 这里是提交jar包的入口 ，在jar包中实现的各种类型的class主入口。
  * @author: gfyulx
  * @date:   2018/8/15 13:58
  *
@@ -26,7 +27,8 @@ public class Submit {
     private String[] jars;
 
 
-    public Submit(){
+    public Submit(Configuration config){
+        this.config=config;
 
     }
     public Submit(String[] configFiles){
@@ -35,10 +37,12 @@ public class Submit {
 
     //根据configuration对象提交yarn任务
     //异常处理中应包含任务提交成功或者失败，失败原因
-    public String submit() throws InterruptedException, IOException, ClassNotFoundException {
-        Job job=Job.getInstance();
-        Configuration config=job.getConfiguration();
-        config.addResource(this.config);
+    //config中应包含各类的配置设置
+    public String deploy() throws InterruptedException, IOException, ClassNotFoundException {
+        Job job=Job.getInstance(this.config);
+        //Configuration config=job.getConfiguration();
+        //config.addResource(this.config);
+        job.waitForCompletion(true);
         return job.getJobID().toString();
     }
 
