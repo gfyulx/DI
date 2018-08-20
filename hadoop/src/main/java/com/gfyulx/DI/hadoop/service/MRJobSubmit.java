@@ -24,9 +24,10 @@ import java.net.URI;
  */
 public class MRJobSubmit {
 
-    public void submit() throws Exception {
+    public void submit(Configuration config) throws Exception {
         Configuration conf = new Configuration();
-        conf.set("fs.defaultFS", "HDFS://fj-c7-188.linewell.com:9200");
+        conf.addResource(config);
+        //conf.set("fs.defaultFS", "HDFS://fj-c7-188.linewell.com:8020");
         Job job = Job.getInstance(conf);
         job.setJarByClass(MRJobSubmit.class);
         job.setMapperClass(MapCollageCount.class);
@@ -37,11 +38,12 @@ public class MRJobSubmit {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(LongWritable.class);
 
-        Path inputPath = new Path("/data/ s_college_info.csv");
-        Path outputPath = new Path("data/out/collageInfo");
-        FileSystem fs = FileSystem.get(new URI("hdfs://localhost:9000"), conf);
-        if (!fs.exists(outputPath)) {
-            fs.mkdirs(outputPath);
+        Path inputPath = new Path("/user/root/data/s_college_info.csv");
+        Path outputPath = new Path("/user/root/data/out/collageInfo");
+        //FileSystem fs = FileSystem.get(new URI("hdfs://fj-c7-188.linewell.com:8020"), conf);
+        FileSystem fs = FileSystem.get(conf);
+        if (fs.exists(outputPath)) {
+            fs.delete(outputPath);
         }
         FileInputFormat.setInputPaths(job, inputPath);
         FileOutputFormat.setOutputPath(job, outputPath);
