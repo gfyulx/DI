@@ -93,6 +93,8 @@ public class HiveSqlDeploy extends Submit {
         String fileName = createHQLFile(this.HQL);
         arguments.add("-f");
         arguments.add(fileName);
+        arguments.add("--hiveconf");
+        arguments.add("hive.execution.engine=mr");
         //参数分隔用空格或者\t
         String vars = resource.getString("hive.vars");
         String[] splitVars=vars.split("\\s{1,}|\t");
@@ -104,13 +106,13 @@ public class HiveSqlDeploy extends Submit {
         }
         arguments.add("-a");
         arguments.add("delegationToken");
-        LOG.info("geneteror hive parater:"+arguments);
-        //System.out.println(arguments);
+
 
         //固定配置，用于获取特定类别的yarn调度子进程ID获取
         arguments.add("--hiveconf");
         arguments.add("mapreduce.job.tags=" + this.MAPREDUCE_JOB_TAGS);
-
+        LOG.info("geneteror hive parater:"+arguments);
+        //System.out.println(arguments);
         //用于获取实际运行在yarn上的jobid
         logFile=new String("hivejob_"+System.currentTimeMillis()+".log");
         //runBeeline
@@ -124,7 +126,7 @@ public class HiveSqlDeploy extends Submit {
     private void runBeeline(String[] args, String logFile) throws Exception {
         // We do this instead of calling BeeLine.main so we can duplicate the error stream for harvesting Hadoop child job IDs
         BeeLine beeLine = new BeeLine();
-        //beeLine.setErrorStream(new PrintStream(new TeeOutputStream(System.err, new FileOutputStream(logFile))));
+        beeLine.setErrorStream(new PrintStream(new TeeOutputStream(System.err, new FileOutputStream(logFile))));
         //测试获取所有的输出结果
         beeLine.setOutputStream(new PrintStream(new TeeOutputStream(System.out, new FileOutputStream(logFile)),true));
         int status = beeLine.begin(args, null);
