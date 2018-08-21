@@ -40,7 +40,7 @@ public class MRJobSubmit {
 
         Path inputPath = new Path("/user/root/data/s_college_info.csv");
         Path outputPath = new Path("/user/root/data/out/collageInfo");
-        //FileSystem fs = FileSystem.get(new URI("hdfs://fj-c7-188.linewell.com:8020"), conf);
+
         FileSystem fs = FileSystem.get(conf);
         if (fs.exists(outputPath)) {
             fs.delete(outputPath);
