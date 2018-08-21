@@ -27,9 +27,9 @@ public class MRJobSubmit {
     public void submit(Configuration config) throws Exception {
         Configuration conf = new Configuration();
         conf.addResource(config);
-        //conf.set("fs.defaultFS", "HDFS://fj-c7-188.linewell.com:8020");
         Job job = Job.getInstance(conf);
         job.setJarByClass(MRJobSubmit.class);
+        job.setJar("d:\\code\\java\\gfyulx\\DI\\out\\artifacts\\collageCount\\collageCount.jar");
         job.setMapperClass(MapCollageCount.class);
         job.setReducerClass(ReduceCollageCount.class);
 
