@@ -52,4 +52,23 @@ public class common {
             }
         }
     }
+    public static String getHadoopJobIds(String logFile, Pattern[] patterns) {
+        Set<String> jobIds = new LinkedHashSet<String>();
+        if (!new File(logFile).exists()) {
+            System.err.println("Log file: " + logFile + "  not present. Therefore no Hadoop job IDs found.");
+        }
+        else {
+            try (BufferedReader br = new BufferedReader(new FileReader(logFile))) {
+                String line = br.readLine();
+                while (line != null) {
+                    extractJobIDs(line, patterns, jobIds);
+                    line = br.readLine();
+                }
+            } catch (IOException e) {
+                System.out.println("WARN: Error getting Hadoop Job IDs. logFile: " + logFile);
+                e.printStackTrace(System.out);
+            }
+        }
+        return jobIds.isEmpty() ? null : StringUtils.join(jobIds, ",");
+    }
 }

@@ -23,6 +23,7 @@ public class HadoopConfiguration {
     protected static String[] HADOOP_SITE_FILES = new String[]
             {"core-site.xml", "hdfs-site.xml", "mapred-site.xml", "yarn-site.xml"};
     protected static String PROJECT_CONF_PATH="./";
+
     Configuration config;
 
     HadoopConfiguration(Configuration config) {

@@ -19,6 +19,11 @@ import com.gfyulx.DI.hadoop.service.util.loadJarToHDFS;
  *
  * @Copyright: 2018 gfyulx
  *
+ * 初始参数：
+ * 提供配置文件和args
+ * 各自类可以加载配置文件的解析类
+ * 提供jobid的获取和返回。
+ *
  */
 public class Submit {
     private static final Logger LOG = LoggerFactory.getLogger(Submit.class);
