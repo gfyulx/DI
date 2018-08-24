@@ -5,9 +5,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.spark.deploy.SparkSubmit;
+
 import com.gfyulx.DI.common.common;
 import com.gfyulx.DI.hadoop.service.util.HadoopUriFinder;
 
@@ -27,17 +27,17 @@ import java.util.regex.Pattern;
 
 public class SparkMain extends Submit {
 
-    public static final String SPARK_MAIN_CLASS_NAME = "org.apache.oozie.action.hadoop.SparkMain";
+    public static final String SPARK_MAIN_CLASS_NAME = "action.hadoop.SparkMain";
     public static final String TASK_USER_PRECEDENCE = "mapreduce.task.classpath.user.precedence"; // hadoop-2
     public static final String TASK_USER_CLASSPATH_PRECEDENCE = "mapreduce.user.classpath.first";  // hadoop-1
-    public static final String SPARK_MASTER = "oozie.spark.master";
-    public static final String SPARK_MODE = "oozie.spark.mode";
-    public static final String SPARK_OPTS = "oozie.spark.spark-opts";
-    public static final String SPARK_JOB_NAME = "oozie.spark.name";
-    public static final String SPARK_CLASS = "oozie.spark.class";
-    public static final String SPARK_JAR = "oozie.spark.jar";
+    public static final String SPARK_MASTER = "spark.master";
+    public static final String SPARK_MODE = "spark.mode";
+    public static final String SPARK_OPTS = "spark.spark-opts";
+    public static final String SPARK_JOB_NAME = "spark.name";
+    public static final String SPARK_CLASS = "spark.class";
+    public static final String SPARK_JAR = "spark.jar";   //hdfs路径的jar包
     public static final String MAPRED_CHILD_ENV = "mapred.child.env";
-    private static final String CONF_OOZIE_SPARK_SETUP_HADOOP_CONF_DIR = "oozie.action.spark.setup.hadoop.conf.dir";
+    private static final String CONF_OOZIE_SPARK_SETUP_HADOOP_CONF_DIR = "action.spark.setup.hadoop.conf.dir";
 
 
     @VisibleForTesting
@@ -62,14 +62,15 @@ public class SparkMain extends Submit {
     }
 
 
-    protected void run(final String[] args, Configuration config) throws Exception {
+    protected void run(Configuration config) throws Exception {
         Configuration conf = new Configuration();
         conf.addResource(config);
         //setYarnTag(conf);
         final String logFile = setUpSparkLog4J(conf);
 
+        //解析配置文件为sparksubmit的参数
         final SparkArgsExtractor sparkArgsExtractor = new SparkArgsExtractor(conf);
-        final List<String> sparkArgs = sparkArgsExtractor.extract(args);
+        final List<String> sparkArgs = sparkArgsExtractor.extract();
 
         if (sparkArgsExtractor.isPySpark()) {
             createPySparkLibFolder();

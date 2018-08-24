@@ -1,21 +1,3 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.gfyulx.DI.hadoop.service;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -79,7 +61,7 @@ class SparkArgsExtractor {
         return pySpark;
     }
 
-    List<String> extract(final String[] mainArgs) throws  IOException, URISyntaxException {
+    List<String> extract() throws  IOException, URISyntaxException {
         final List<String> sparkArgs = new ArrayList<>();
 
         sparkArgs.add(MASTER_OPTION);
@@ -108,8 +90,6 @@ class SparkArgsExtractor {
             sparkArgs.add(CLASS_NAME_OPTION);
             sparkArgs.add(className);
         }
-
-        appendOoziePropertiesToSparkConf(sparkArgs);
 
         String jarPath = actionConf.get(SparkMain.SPARK_JAR);
         if (jarPath != null && jarPath.endsWith(".py")) {
@@ -283,8 +263,8 @@ class SparkArgsExtractor {
         if ((yarnClusterMode || yarnClientMode)) {
             final Map<String, URI> fixedFileUrisMap =
                     SparkMain.fixFsDefaultUrisAndFilterDuplicates(DistributedCache.getCacheFiles(actionConf));
-            fixedFileUrisMap.put(SparkMain.SPARK_LOG4J_PROPS, new Path(SparkMain.SPARK_LOG4J_PROPS).toUri());
-            fixedFileUrisMap.put(SparkMain.HIVE_SITE_CONF, new Path(SparkMain.HIVE_SITE_CONF).toUri());
+            //fixedFileUrisMap.put(SparkMain.SPARK_LOG4J_PROPS, new Path(SparkMain.SPARK_LOG4J_PROPS).toUri());
+            //fixedFileUrisMap.put(SparkMain.HIVE_SITE_CONF, new Path(SparkMain.HIVE_SITE_CONF).toUri());
             addUserDefined(userFiles.toString(), fixedFileUrisMap);
             final Collection<URI> fixedFileUris = fixedFileUrisMap.values();
             final JarFilter jarFilter = new JarFilter(fixedFileUris, jarPath);
@@ -312,7 +292,7 @@ class SparkArgsExtractor {
         }
 
         sparkArgs.add(jarPath);
-        sparkArgs.addAll(Arrays.asList(mainArgs));
+        //sparkArgs.addAll(Arrays.asList(mainArgs));
 
         return sparkArgs;
     }
@@ -332,18 +312,6 @@ class SparkArgsExtractor {
                     urisMap.put(p.getName(), p.toUri());
                 }
             }
-        }
-    }
-
-    /*
-     * Get properties that needs to be passed to Spark as Spark configuration from actionConf.
-     */
-    @VisibleForTesting
-    void appendOoziePropertiesToSparkConf(final List<String> sparkArgs) {
-        for (final Map.Entry<String, String> oozieConfig : actionConf
-                .getValByRegex("^oozie\\.(?!launcher|spark).+").entrySet()) {
-            sparkArgs.add(CONF_OPTION);
-            sparkArgs.add(String.format("spark.%s=%s", oozieConfig.getKey(), oozieConfig.getValue()));
         }
     }
 
