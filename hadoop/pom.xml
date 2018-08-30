@@ -10,7 +10,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>gfyulx-hadoop</artifactId>
+    <properties>
+    <sqoop.version>1.4.3</sqoop.version>
+    <sqoop.classifier>hadoop100</sqoop.classifier>
+    </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.apache.sqoop</groupId>
+            <artifactId>sqoop</artifactId>
+            <version>${sqoop.version}</version>
+            <classifier>${sqoop.classifier}</classifier>
+        </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore</artifactId>

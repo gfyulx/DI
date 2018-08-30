@@ -32,10 +32,11 @@ public class SparkMain extends Submit {
     public static final String TASK_USER_CLASSPATH_PRECEDENCE = "mapreduce.user.classpath.first";  // hadoop-1
     public static final String SPARK_MASTER = "spark.master";
     public static final String SPARK_MODE = "spark.mode";
-    public static final String SPARK_OPTS = "spark.spark-opts";
+    public static final String SPARK_OPTS = "spark.spark-opts";  //只能有一个？？
     public static final String SPARK_JOB_NAME = "spark.name";
     public static final String SPARK_CLASS = "spark.class";
-    public static final String SPARK_JAR = "spark.jar";   //hdfs路径的jar包
+    public static final String SPARK_JAR = "spark.jar";   //hdfs路径的jar包,主jar包
+    //public static final String SPARK_JARS="spark.jars";  //需要多个上传的jars包
     public static final String MAPRED_CHILD_ENV = "mapred.child.env";
     private static final String CONF_OOZIE_SPARK_SETUP_HADOOP_CONF_DIR = "action.spark.setup.hadoop.conf.dir";
 
@@ -62,7 +63,7 @@ public class SparkMain extends Submit {
     }
 
 
-    protected void run(Configuration config) throws Exception {
+    protected void run(final String[] args,Configuration config) throws Exception {
         Configuration conf = new Configuration();
         conf.addResource(config);
         //setYarnTag(conf);
@@ -70,7 +71,7 @@ public class SparkMain extends Submit {
 
         //解析配置文件为sparksubmit的参数
         final SparkArgsExtractor sparkArgsExtractor = new SparkArgsExtractor(conf);
-        final List<String> sparkArgs = sparkArgsExtractor.extract();
+        final List<String> sparkArgs = sparkArgsExtractor.extract(args);
 
         if (sparkArgsExtractor.isPySpark()) {
             createPySparkLibFolder();

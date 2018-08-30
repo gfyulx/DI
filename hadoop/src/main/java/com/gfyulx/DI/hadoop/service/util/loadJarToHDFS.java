@@ -8,28 +8,24 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.hadoop.fs.BlockLocation;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.RemoteIterator;
 
 /**
- * @ClassName: loadJarToHDFS
+ * @ClassName: LoadJarToHDFS
  * @Description: 上传文件到hdfs路径
  * @author: gfyulx
  * @date: 2018/8/15 11:28
  * @Copyright: 2018 gfyulx
  */
-public class loadJarToHDFS {
-    private static final Logger LOG = LoggerFactory.getLogger(loadJarToHDFS.class);
+public class LoadJarToHDFS {
+    private static final Logger LOG = LoggerFactory.getLogger(LoadJarToHDFS.class);
     Configuration config;
     private String[] fileList;
     private String dstPath;
 
 
-    public loadJarToHDFS(Configuration config) {
+    public LoadJarToHDFS(Configuration config) {
         this.config = new Configuration(config);
     }
 

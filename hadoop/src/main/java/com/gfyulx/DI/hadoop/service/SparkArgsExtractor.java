@@ -61,7 +61,7 @@ class SparkArgsExtractor {
         return pySpark;
     }
 
-    List<String> extract() throws  IOException, URISyntaxException {
+    List<String> extract(final String[] mainArgs) throws  IOException, URISyntaxException {
         final List<String> sparkArgs = new ArrayList<>();
 
         sparkArgs.add(MASTER_OPTION);
@@ -96,25 +96,23 @@ class SparkArgsExtractor {
             pySpark = true;
         }
 
-        boolean addedSecurityTokensHadoopFS = false;
-        boolean addedSecurityTokensHive = false;
-        boolean addedSecurityTokensHBase = false;
-
-        boolean addedSecurityCredentialsHadoopFS = false;
-        boolean addedSecurityCredentialsHive = false;
-        boolean addedSecurityCredentialsHBase = false;
-
         boolean addedLog4jDriverSettings = false;
         boolean addedLog4jExecutorSettings = false;
         final StringBuilder driverClassPath = new StringBuilder();
         final StringBuilder executorClassPath = new StringBuilder();
         final StringBuilder userFiles = new StringBuilder();
         final StringBuilder userArchives = new StringBuilder();
+        final StringBuilder executorExtraJavaOptions = new StringBuilder();
+        final StringBuilder driverExtraJavaOptions = new StringBuilder();
+
+        //解析spark_opts参数
         final String sparkOpts = actionConf.get(SparkMain.SPARK_OPTS);
+        System.out.println(sparkOpts);
         if (StringUtils.isNotEmpty(sparkOpts)) {
             final List<String> sparkOptions = SparkOptionsSplitter.splitSparkOpts(sparkOpts);
             for (int i = 0; i < sparkOptions.size(); i++) {
                 String opt = sparkOptions.get(i);
+                System.out.println(opt);
                 boolean addToSparkArgs = true;
                 if (yarnClusterMode || yarnClientMode) {
                     if (opt.startsWith(EXECUTOR_CLASSPATH)) {
@@ -134,26 +132,6 @@ class SparkArgsExtractor {
                     }
                 }
 
-                if (opt.startsWith(SECURITY_TOKENS_HADOOPFS)) {
-                    addedSecurityTokensHadoopFS = true;
-                }
-                if (opt.startsWith(SECURITY_TOKENS_HIVE)) {
-                    addedSecurityTokensHive = true;
-                }
-                if (opt.startsWith(SECURITY_TOKENS_HBASE)) {
-                    addedSecurityTokensHBase = true;
-                }
-
-                if (opt.startsWith(SECURITY_CREDENTIALS_HADOOPFS)) {
-                    addedSecurityCredentialsHadoopFS = true;
-                }
-                if (opt.startsWith(SECURITY_CREDENTIALS_HIVE)) {
-                    addedSecurityCredentialsHive = true;
-                }
-                if (opt.startsWith(SECURITY_CREDENTIALS_HBASE)) {
-                    addedSecurityCredentialsHBase = true;
-                }
-
                 if (opt.startsWith(EXECUTOR_EXTRA_JAVA_OPTIONS) || opt.startsWith(DRIVER_EXTRA_JAVA_OPTIONS)) {
                     if (!opt.contains(LOG4J_CONFIGURATION_JAVA_OPTION)) {
                         opt += " " + LOG4J_CONFIGURATION_JAVA_OPTION + SparkMain.SPARK_LOG4J_PROPS;
@@ -161,9 +139,14 @@ class SparkArgsExtractor {
                         System.out.println("Warning: Spark Log4J settings are overwritten." +
                                 " Child job IDs may not be available");
                     }
+
                     if (opt.startsWith(EXECUTOR_EXTRA_JAVA_OPTIONS)) {
+                        appendWithPathSeparator(opt.substring(EXECUTOR_EXTRA_JAVA_OPTIONS.length()), executorExtraJavaOptions);
+                        addToSparkArgs = false;
                         addedLog4jExecutorSettings = true;
                     } else {
+                        appendWithPathSeparator(opt.substring(DRIVER_EXTRA_JAVA_OPTIONS.length()), driverExtraJavaOptions);
+                        addToSparkArgs = false;
                         addedLog4jDriverSettings = true;
                     }
                 }
@@ -218,32 +201,12 @@ class SparkArgsExtractor {
 
             sparkArgs.add(CONF_OPTION);
             sparkArgs.add(DRIVER_CLASSPATH + driverClassPath.toString());
-        }
 
-        if (!addedSecurityTokensHadoopFS) {
             sparkArgs.add(CONF_OPTION);
-            sparkArgs.add(SECURITY_TOKENS_HADOOPFS + OPT_SEPARATOR + Boolean.toString(false));
-        }
-        if (!addedSecurityTokensHive) {
-            sparkArgs.add(CONF_OPTION);
-            sparkArgs.add(SECURITY_TOKENS_HIVE + OPT_SEPARATOR + Boolean.toString(false));
-        }
-        if (!addedSecurityTokensHBase) {
-            sparkArgs.add(CONF_OPTION);
-            sparkArgs.add(SECURITY_TOKENS_HBASE + OPT_SEPARATOR + Boolean.toString(false));
-        }
+            sparkArgs.add(EXECUTOR_EXTRA_JAVA_OPTIONS + executorExtraJavaOptions.toString());
 
-        if (!addedSecurityCredentialsHadoopFS) {
             sparkArgs.add(CONF_OPTION);
-            sparkArgs.add(SECURITY_CREDENTIALS_HADOOPFS + OPT_SEPARATOR + Boolean.toString(false));
-        }
-        if (!addedSecurityCredentialsHive) {
-            sparkArgs.add(CONF_OPTION);
-            sparkArgs.add(SECURITY_CREDENTIALS_HIVE + OPT_SEPARATOR + Boolean.toString(false));
-        }
-        if (!addedSecurityCredentialsHBase) {
-            sparkArgs.add(CONF_OPTION);
-            sparkArgs.add(SECURITY_CREDENTIALS_HBASE + OPT_SEPARATOR + Boolean.toString(false));
+            sparkArgs.add(DRIVER_EXTRA_JAVA_OPTIONS + driverExtraJavaOptions.toString());
         }
 
         if (!addedLog4jExecutorSettings) {
@@ -292,7 +255,7 @@ class SparkArgsExtractor {
         }
 
         sparkArgs.add(jarPath);
-        //sparkArgs.addAll(Arrays.asList(mainArgs));
+        sparkArgs.addAll(Arrays.asList(mainArgs));
 
         return sparkArgs;
     }

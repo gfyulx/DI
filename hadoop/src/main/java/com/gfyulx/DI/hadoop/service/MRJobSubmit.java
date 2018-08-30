@@ -12,8 +12,13 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @ClassName: MRJobSubmit
@@ -23,6 +28,7 @@ import java.net.URI;
  * @Copyright: 2018 gfyulx
  */
 public class MRJobSubmit {
+    private static final Logger LOG = LoggerFactory.getLogger(MRJobSubmit.class);
 
     public void submit(Configuration config) throws Exception {
         Configuration conf = new Configuration();
@@ -50,4 +56,50 @@ public class MRJobSubmit {
 
         boolean waitForCompletion = job.waitForCompletion(true);
     }
+    /*
+    public boolean run(MRTaskParam param) throws Exception {
+
+        Configuration conf = new Configuration();
+        String configPath = new String();
+        try {
+            configPath = System.getProperty("HADOOP_CONF_DIR");
+        } catch (IllegalArgumentException e) {
+            System.out.println("HADOOP_CONF_DIR need be set in local env" + e);
+
+        }
+        List<String> fileNames = new ArrayList<>();
+        for (String f : HADOOP_SITE_FILES) {
+            fileNames.add(configPath + f);
+        }
+        conf = loadConfigFiles(fileNames.toArray(new String[fileNames.size()]));
+
+        List<String> arguments = new ArrayList<>();
+        String vars = param.getOptions();
+        String[] splitVars = vars.split(",");
+        for (String var : splitVars) {
+            if (var.length() > 0 && var.contains("=")) {
+                String[] keyValue = var.split("=");
+                conf.set(keyValue[0], keyValue[1]);
+            }
+        }
+
+        Job job = Job.getInstance(conf);
+        job.setJar(param.getJarPath());
+        boolean waitForCompletion = job.waitForCompletion(true);
+        return waitForCompletion;
+    }
+
+    public static Configuration loadConfigFiles(String[] fileNames) {
+        Configuration config = new Configuration();
+        for (String configFile : fileNames) {
+            File file = new File(configFile);
+            if (file.exists()) {
+                config.addResource(configFile);
+                LOG.debug("load configfile:" + configFile);
+            }
+        }
+        return config;
+
+    }
+    */
 }

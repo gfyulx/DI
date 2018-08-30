@@ -124,7 +124,7 @@ public class HiveSqlDeploy extends Submit {
         }
     }
     private void runBeeline(String[] args, String logFile) throws Exception {
-        // We do this instead of calling BeeLine.main so we can duplicate the error stream for harvesting Hadoop child job IDs
+        // We do this instead of calling BeeLine.ZooKeeperBase so we can duplicate the error stream for harvesting Hadoop child job IDs
         BeeLine beeLine = new BeeLine();
         beeLine.setErrorStream(new PrintStream(new TeeOutputStream(System.err, new FileOutputStream(logFile))));
         //测试获取所有的输出结果
