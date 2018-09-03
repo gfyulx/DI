@@ -11,10 +11,16 @@
 
     <artifactId>gfyulx-hadoop</artifactId>
     <properties>
-    <sqoop.version>1.4.3</sqoop.version>
-    <sqoop.classifier>hadoop100</sqoop.classifier>
+        <sqoop.version>1.4.3</sqoop.version>
+        <sqoop.classifier>hadoop100</sqoop.classifier>
+        <kafka.version>2.0.0</kafka.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>${kafka.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.sqoop</groupId>
             <artifactId>sqoop</artifactId>
