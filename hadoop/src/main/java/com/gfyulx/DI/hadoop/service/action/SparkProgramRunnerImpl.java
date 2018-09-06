@@ -3,17 +3,17 @@ package com.gfyulx.DI.hadoop.service.action;
 
 import com.gfyulx.DI.hadoop.service.action.params.SparkJarTaskParam;
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.fs.Path;
 import org.apache.spark.deploy.SparkSubmit;
+import org.apache.hadoop.fs.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,12 +21,13 @@ import java.util.regex.Pattern;
  * @ClassName:  SparkProgramRunnerImpl
  * @Description: TODO (这里用一句话描述这个类的作用)
  * @author: gfyulx
- * @date:   2018/8/30 10:57
+ * @date:   2018/9/6 16:01
  *
  * @Copyright: 2018 gfyulx
  *
  */
-public class SparkProgramRunnerImpl {
+public class SparkProgramRunnerImpl  {
+    //private static final Logger LOG = LoggerFactory.getLogger(SparkProgramRunnerImpl.class);
     private static final Pattern SPARK_DEFAULTS_FILE_PATTERN = Pattern.compile("spark-defaults.conf");
     private static final String FILES_OPTION = "--files";
     private static final String ARCHIVES_OPTION = "--archives";
@@ -88,12 +89,15 @@ public class SparkProgramRunnerImpl {
 
         try {
             System.getProperty("HADOOP_CONF_DIR");
+            //System.out.println(System.getProperty("HADOOP_CONF_DIR"));
             runSpark(sparkArgs.toArray(new String[sparkArgs.size()]));
         } catch (IllegalArgumentException e) {
             System.out.println("HADOOP_CONF_DIR need be set in local env" + e);
             return false;
         } catch (Exception ex) {
-            return false;
+            System.out.println(ex.getMessage());
+            //System.out.println(ex.getCause());
+            ex.printStackTrace();
         } finally {
             System.out.println("\n<<< Invocation of Spark command completed <<<\n");
         }
@@ -106,6 +110,7 @@ public class SparkProgramRunnerImpl {
         System.out.println(">>> Invoking Spark class now >>>");
         System.out.println();
         System.out.flush();
+        System.out.println(System.getProperty("SPARK_HOME"));
         SparkSubmit.main(args);
     }
 
@@ -147,7 +152,7 @@ public class SparkProgramRunnerImpl {
             final List<String> sparkOptions = splitSparkOpts(sparkOpts);
             for (int i = 0; i < sparkOptions.size(); i++) {
                 String opt = sparkOptions.get(i);
-                System.out.println(opt);
+                //System.out.println(opt);
                 boolean addToSparkArgs = true;
                 if (yarnClusterMode || yarnClientMode) {
                     if (opt.startsWith(EXECUTOR_CLASSPATH)) {
@@ -215,6 +220,13 @@ public class SparkProgramRunnerImpl {
             // Include the current working directory (of executor container)
             // in executor classpath, because it will contain localized
             // files
+
+            if (userFiles != null && userFiles.length()>0) {
+                sparkArgs.add(FILES_OPTION);
+                sparkArgs.add(userFiles.toString());
+
+            }
+
             appendWithPathSeparator(PWD, executorClassPath);
             appendWithPathSeparator(PWD, driverClassPath);
 
@@ -234,8 +246,9 @@ public class SparkProgramRunnerImpl {
         String jarPath = param.getJarPath();
         sparkArgs.add(jarPath);
         String[] mainArgs = param.getArgs();
-        sparkArgs.addAll(Arrays.asList(mainArgs));
-
+        if( mainArgs!=null && mainArgs.length>0) {
+            sparkArgs.addAll(Arrays.asList(mainArgs));
+        }
         return sparkArgs;
     }
 

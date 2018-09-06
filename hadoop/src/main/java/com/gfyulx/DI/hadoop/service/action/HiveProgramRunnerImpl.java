@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  * @Copyright: 2018 gfyulx
  */
 public class HiveProgramRunnerImpl {
-    private static final Logger LOG = LoggerFactory.getLogger(HiveProgramRunnerImpl.class);
+    //private static final Logger LOG = LoggerFactory.getLogger(HiveProgramRunnerImpl.class);
     //从日志文件中获取jobid的正则
     static final Pattern[] HIVE2_JOB_IDS_PATTERNS = {
             Pattern.compile("Ended Job = (job_\\S*)"),
@@ -93,7 +93,7 @@ public class HiveProgramRunnerImpl {
         //固定配置，用于获取特定类别的yarn调度子进程ID获取
         arguments.add("--hiveconf");
         arguments.add("mapreduce.job.tags=" + this.MAPREDUCE_JOB_TAGS);
-        LOG.info("geneteror hive parater:" + arguments);
+        //LOG.info("geneteror hive parater:" + arguments);
         //System.out.println(arguments);
         //用于获取实际运行在yarn上的jobid
         logFile = new String("hivejob_" + System.currentTimeMillis() + ".log");

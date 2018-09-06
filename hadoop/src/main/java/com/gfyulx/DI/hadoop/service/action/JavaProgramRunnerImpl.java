@@ -30,15 +30,38 @@ public class JavaProgramRunnerImpl  {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Class not found", e);
         }
-        System.out.println("Main class        : " + klass.getName());
-
-        //参数分隔用空格或者\t
-        String vars = param.getArguments();
-        String[] splitVars = vars.split("\\s{1,}|\t");
+        System.out.println("Main class: " + klass.getName());
         System.out.println();
-        Method mainMethod = klass.getMethod("main", String[].class);
+        Method mainMethod;
         try {
-            mainMethod.invoke(null, (Object) splitVars);
+            Object obj = klass.newInstance();
+            Method[] methods = klass.getDeclaredMethods();
+            for (Method methodl : methods) {
+                System.out.println(methodl.getName());
+                if (methodl.getName().equals("main")) {
+                    Class<?>[] parameters = methodl.getParameterTypes();
+                    if (parameters.length == 0) {
+                        mainMethod = klass.getMethod("main");
+                        mainMethod.invoke(obj, null);
+                    } else {
+                        //支持的main方法参数目前只支持String[] args;
+                        mainMethod = klass.getMethod("main", String[].class);
+                        //参数分隔用空格或者\t
+                        String vars = param.getArguments();
+                        if (vars != null && !vars.isEmpty()) {
+                            String[] splitVars = vars.split("\\s{1,}|\t");
+                            mainMethod.invoke(obj, (Object) splitVars);
+                        }else{
+                            throw new IllegalArgumentException("argument can't be null");
+                        }
+                    }
+                    break;
+                }
+                throw new ClassNotFoundException("main");
+            }
+            //Method mainMethod = klass.getMethod("main");
+            //Method mainMethod = klass.getMethod("main", String.class);
+
         } catch (InvocationTargetException ex) {
             // Get rid of the InvocationTargetException and wrap the Throwable
             System.out.println(ex.getCause());
