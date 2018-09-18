@@ -2,12 +2,17 @@ package com.gfyulx.DI.hadoop.service.action;
 
 import com.gfyulx.DI.hadoop.service.action.params.HdfsTaskParam;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 
 import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,17 +44,20 @@ public class HdfsProgramRunnerImpl  {
             System.out.println("HADOOP_CONF_DIR need be set in local env" + e);
 
         }
-        this.fsConfig = new Configuration();
+
+        fsConfig = new Configuration();
         List<String> fileNames = new ArrayList<>();
         for (String f : HADOOP_SITE_FILES) {
-            File file = new File(f);
+            File file = new File(configPath + "/" + f);
+            Path pf=new Path(configPath+"/"+f);
             if (file.exists()) {
-                this.fsConfig.addResource(f);
+                //System.out.println(file);
+                fsConfig.addResource(pf);
             }
 
         }
         try {
-            if (delePath.length() > 0) {
+            if (delePath != null && delePath.length() > 0) {
                 if (delePath.contains(",")) {
                     for (String subPath : delePath.split(",")) {
                         delete(subPath);
@@ -59,7 +67,7 @@ public class HdfsProgramRunnerImpl  {
                 }
             }
 
-            if (creatPath.length() > 0) {
+            if (creatPath != null && creatPath.length() > 0) {
                 if (creatPath.contains(",")) {
                     for (String subPath : creatPath.split(",")) {
                         mkdir(subPath);
@@ -69,7 +77,7 @@ public class HdfsProgramRunnerImpl  {
                 }
             }
 
-            if (creatFile.length() > 0) {
+            if (creatFile != null && creatFile.length() > 0) {
                 if (creatFile.contains(",")) {
                     for (String subFile : creatFile.split(",")) {
                         touchz(subFile);
@@ -79,7 +87,7 @@ public class HdfsProgramRunnerImpl  {
                 }
             }
 
-            if (moveEntities.length() > 0) {
+            if (moveEntities != null && moveEntities.length() > 0) {
                 if (moveEntities.contains(",")) {
                     for (String subEntity : moveEntities.split(",")) {
                         move(subEntity);
@@ -133,13 +141,13 @@ public class HdfsProgramRunnerImpl  {
                 Path sPath = new Path(source);
                 Path tPath = new Path(target);
                 if ((sPath == null || source.length() == 0) || (!fs.exists(sPath))) {
-                    throw new Exception("move, source path [{0}] does not exist" + source);
+                    throw new Exception("move, source path [{0}] does not exist:" + source);
                 }
                 if (fs.isDirectory(sPath) && (fs.exists(tPath) && fs.isFile(tPath))) {
                     throw new Exception("move, could not move sources direct to dest file!");
                 }
                 if (!fs.rename(sPath, tPath)) {
-                    throw new Exception("move, could not move [{0}] to [{1}]" + source + target);
+                    throw new Exception("move, could not move [{0}] to [{1}] " + source + target);
                 }
             }
         } catch (Exception ex) {

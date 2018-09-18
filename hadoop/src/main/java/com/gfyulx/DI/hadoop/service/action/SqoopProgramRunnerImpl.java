@@ -125,7 +125,7 @@ public class SqoopProgramRunnerImpl   {
             throw new Exception("sqoop tool not support!");
         } else {
             Sqoop sqoop = new Sqoop(tool, pluginConf);
-            runSqoop(sqoop, (String[]) Arrays.copyOfRange(expandedArgs, 1, expandedArgs.length));
+            Sqoop.runSqoop(sqoop, (String[]) Arrays.copyOfRange(expandedArgs, 1, expandedArgs.length));
         }
 
     }

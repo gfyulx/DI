@@ -1,18 +1,26 @@
 package com.gfyulx.DI.hadoop.service.action;
 
-
+import com.google.common.base.Preconditions;
 import com.gfyulx.DI.hadoop.service.action.params.SparkJarTaskParam;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapred.JobClient;
+import org.apache.hadoop.mapred.RunningJob;
+import org.apache.hadoop.yarn.api.records.ApplicationId;
+import org.apache.hadoop.yarn.client.api.YarnClient;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.spark.deploy.SparkSubmit;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,6 +63,12 @@ public class SparkProgramRunnerImpl  {
     private static final String DEPLOY_MODE_CLIENT = "client";
     private static final String SPARK_YARN_TAGS = "spark.yarn.tags";
     private static final String OPT_PROPERTIES_FILE = "--properties-file";
+    static final String SPARK_LOG4J_PROPS = "spark-log4j.properties";
+    private static final String LOG4J_CONFIGURATION_JAVA_OPTION = "-Dlog4j.configuration=";
+    protected static String[] HADOOP_SITE_FILES = new String[]
+            {"core-site.xml", "hdfs-site.xml", "mapred-site.xml", "yarn-site.xml"};
+
+
     static final Pattern[] SPARK_JOB_IDS_PATTERNS = {
             Pattern.compile("Submitted application (application[0-9_]*)")};
     static final Pattern SPARK_ASSEMBLY_JAR_PATTERN = Pattern
@@ -81,6 +95,7 @@ public class SparkProgramRunnerImpl  {
         System.out.println("Spark action configuration");
         System.out.println("=================================================================");
         System.out.println();
+        String logFile=setUpSparkLog4J();
 
         for (final String arg : sparkArgs) {
             System.out.println("                    " + arg);
@@ -100,6 +115,8 @@ public class SparkProgramRunnerImpl  {
             ex.printStackTrace();
         } finally {
             System.out.println("\n<<< Invocation of Spark command completed <<<\n");
+            String jobId=getHadoopJobIds(logFile,SPARK_JOB_IDS_PATTERNS);
+            System.out.print("hadoopJobId:"+jobId);
         }
         return new Boolean(true);
     }
@@ -237,10 +254,11 @@ public class SparkProgramRunnerImpl  {
             sparkArgs.add(DRIVER_CLASSPATH + driverClassPath.toString());
 
             sparkArgs.add(CONF_OPTION);
-            sparkArgs.add(EXECUTOR_EXTRA_JAVA_OPTIONS + executorExtraJavaOptions.toString());
+            sparkArgs.add(EXECUTOR_EXTRA_JAVA_OPTIONS + executorExtraJavaOptions.toString()+" "+LOG4J_CONFIGURATION_JAVA_OPTION + SPARK_LOG4J_PROPS);
 
             sparkArgs.add(CONF_OPTION);
-            sparkArgs.add(DRIVER_EXTRA_JAVA_OPTIONS + driverExtraJavaOptions.toString());
+            sparkArgs.add(DRIVER_EXTRA_JAVA_OPTIONS + driverExtraJavaOptions.toString()+" "+LOG4J_CONFIGURATION_JAVA_OPTION + SPARK_LOG4J_PROPS);
+
         }
 
         String jarPath = param.getJarPath();
@@ -330,5 +348,152 @@ public class SparkProgramRunnerImpl  {
             sparkArgs.add(CONF_OPTION);
             sparkArgs.add(SPARK_YARN_JARS + OPT_SEPARATOR + sparkYarnJar);
         }
+    }
+    //设置log4j，以获取提交后的jobID
+    private String setUpSparkLog4J() throws IOException {
+        Date d = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+        String dateNowStr = sdf.format(d);
+        String name = ManagementFactory.getRuntimeMXBean().getName();
+        String pid = name.split("@")[0];
+        System.out.println("pid is:"+ pid);
+
+        final String logFile = new File("spark-" + dateNowStr+"-"+pid + ".log").getAbsolutePath();
+        Properties hadoopProps = new Properties();
+
+        // Preparing log4j configuration
+        URL log4jFile = Thread.currentThread().getContextClassLoader().getResource("log4j.properties");
+        if (log4jFile != null) {
+            // getting hadoop log4j configuration
+            hadoopProps.load(log4jFile.openStream());
+        }
+
+        final String logLevel = "INFO";
+        final String rootLogLevel = "INFO";
+
+        hadoopProps.setProperty("log4j.rootLogger", rootLogLevel + ", A");
+        hadoopProps.setProperty("log4j.logger.org.apache.spark", logLevel + ", A, jobid");
+        hadoopProps.setProperty("log4j.additivity.org.apache.spark", "false");
+        hadoopProps.setProperty("log4j.appender.A", "org.apache.log4j.ConsoleAppender");
+        hadoopProps.setProperty("log4j.appender.A.layout", "org.apache.log4j.PatternLayout");
+        hadoopProps.setProperty("log4j.appender.A.layout.ConversionPattern", "%d [%t] %-5p %c %x - %m%n");
+        hadoopProps.setProperty("log4j.appender.jobid", "org.apache.log4j.FileAppender");
+        hadoopProps.setProperty("log4j.appender.jobid.file", logFile);
+        hadoopProps.setProperty("log4j.appender.jobid.layout", "org.apache.log4j.PatternLayout");
+        hadoopProps.setProperty("log4j.appender.jobid.layout.ConversionPattern", "%d [%t] %-5p %c %x - %m%n");
+        hadoopProps.setProperty("log4j.logger.org.apache.hadoop.mapred", "INFO, jobid");
+        hadoopProps.setProperty("log4j.logger.org.apache.hadoop.mapreduce.Job", "INFO, jobid");
+        hadoopProps.setProperty("log4j.logger.org.apache.hadoop.yarn.client.api.impl.YarnClientImpl", "INFO, jobid");
+
+        final String localProps = new File(SPARK_LOG4J_PROPS).getAbsolutePath();
+        try (OutputStream os1 = new FileOutputStream(localProps)) {
+            hadoopProps.store(os1, "");
+        }
+        PropertyConfigurator.configure(SPARK_LOG4J_PROPS);
+        return logFile;
+    }
+
+    protected static String getHadoopJobIds(String logFile, Pattern[] patterns) {
+        Set<String> jobIds = new LinkedHashSet<String>();
+        if (!new File(logFile).exists()) {
+            System.err.println("Log file: " + logFile + "  not present. Therefore no Hadoop job IDs found.");
+        }
+        else {
+            try (BufferedReader br = new BufferedReader(new FileReader(logFile))) {
+                String line = br.readLine();
+                while (line != null) {
+                    extractJobIDs(line, patterns, jobIds);
+                    line = br.readLine();
+                }
+            } catch (IOException e) {
+                System.out.println("WARN: Error getting Hadoop Job IDs. logFile: " + logFile);
+                e.printStackTrace(System.out);
+            }
+        }
+        return jobIds.isEmpty() ? null : StringUtils.join(jobIds, ",");
+    }
+    protected static void extractJobIDs(String line, Pattern[] patterns, Set<String> jobIds) {
+        Preconditions.checkNotNull(line);
+        for (Pattern pattern : patterns) {
+            Matcher matcher = pattern.matcher(line);
+            if (matcher.find()) {
+                String jobId = matcher.group(1);
+                if (StringUtils.isEmpty(jobId) || jobId.equalsIgnoreCase("NULL")) {
+                    continue;
+                }
+                jobId = jobId.replaceAll("application", "job");
+                jobIds.add(jobId);
+            }
+        }
+    }
+
+    public boolean kill(String jobId) throws Exception {
+        Configuration conf = new Configuration();
+        conf = loadConf();
+        YarnClient yarnClient=YarnClient.createYarnClient();
+        yarnClient.init(conf);
+        yarnClient.start();
+        String[] parts = jobId.split("_");
+        long timeScope=0L;
+        int id=0;
+        if (parts.length == 3 && parts[0].equals("job")) {
+            timeScope=Long.parseLong(parts[1]);
+            id=Integer.parseInt(parts[2]);
+        }else{
+            throw new Exception("jobId format wrong!");
+        }
+        ApplicationId appId=ApplicationId.newInstance(timeScope,id) ;
+        try {
+            yarnClient.killApplication(appId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+
+    public String getStatus(String jobId) throws Exception {
+        Configuration conf = new Configuration();
+        conf = loadConf();
+        JobClient job = new JobClient(conf);
+        RunningJob jobStatus = job.getJob(jobId);
+        System.out.print(jobStatus.toString());
+        int statusInt = jobStatus.getJobStatus().getRunState();
+        return jobStatus.getJobStatus().getJobRunState(statusInt);
+    }
+
+    public static Configuration loadConfigFiles(String[] fileNames) {
+        Configuration config = new Configuration();
+        for (String configFile : fileNames) {
+            File file = new File(configFile);
+            if (file.exists()) {
+                try {
+                    URL url = file.toURI().toURL();
+                    config.addResource(url);
+                    System.out.println("load configfile:" + configFile);
+                } catch (Exception e) {
+                    System.err.print(e.getMessage());
+                }
+            } else {
+                System.out.print("configfile:" + configFile + "not exists!");
+            }
+        }
+        return config;
+
+    }
+    public Configuration loadConf() {
+        String configPath = new String();
+        try {
+            configPath = System.getProperty("HADOOP_CONF_DIR");
+        } catch (IllegalArgumentException e) {
+            System.out.println("HADOOP_CONF_DIR need be set in local env" + e);
+
+        }
+        List<String> fileNames = new ArrayList<>();
+        for (String f : HADOOP_SITE_FILES) {
+            fileNames.add(configPath + "\\" + f);
+        }
+        return loadConfigFiles(fileNames.toArray(new String[fileNames.size()]));
     }
 }

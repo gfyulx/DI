@@ -5,13 +5,19 @@ import com.gfyulx.DI.hadoop.service.action.params.MRTaskParam;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.JobClient;
+import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.JobStatus;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.yarn.client.api.YarnClient;
+import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+
+import java.io.*;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -32,21 +38,12 @@ public class MRProgramRunnerImpl {
     protected static String[] HADOOP_SITE_FILES = new String[]
             {"core-site.xml", "hdfs-site.xml", "mapred-site.xml", "yarn-site.xml"};
 
-    public boolean run(MRTaskParam param) throws Exception {
+
+    public String run(MRTaskParam param) throws Exception {
 
         Configuration conf = new Configuration();
-        String configPath = new String();
-        try {
-            configPath = System.getProperty("HADOOP_CONF_DIR");
-        } catch (IllegalArgumentException e) {
-            System.out.println("HADOOP_CONF_DIR need be set in local env" + e);
 
-        }
-        List<String> fileNames = new ArrayList<>();
-        for (String f : HADOOP_SITE_FILES) {
-            fileNames.add(configPath + f);
-        }
-        conf = loadConfigFiles(fileNames.toArray(new String[fileNames.size()]));
+        conf = loadConf();
         //fow windows10 test;
         String os = System.getProperty("os.name");
         //System.out.println(os);
@@ -151,12 +148,58 @@ public class MRProgramRunnerImpl {
             FileInputFormat.setInputPaths(job, inputPath);
             FileOutputFormat.setOutputPath(job, outputPath);
 
-            boolean waitForCompletion = job.waitForCompletion(true);
-            return waitForCompletion;
+            //modify to sync submit mode
+            //boolean waitForCompletion = job.waitForCompletion(true);
+            job.submit();
+            while (job.getJobState() != JobStatus.State.RUNNING) {
+                Thread.sleep(2000);
+
+            }
+            String jobId = job.getJobID().toString();
+            System.out.println("jobId is:" + jobId);
+            return jobId;
+            //return true;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception(e.getMessage());
+            System.out.println(e.getMessage());
+            return ("-1");
         }
+    }
+
+    public boolean kill(String jobId) throws Exception {
+        Configuration conf = new Configuration();
+        conf = loadConf();
+        YarnClient yarnClient=YarnClient.createYarnClient();
+        yarnClient.init(conf);
+        yarnClient.start();
+        String[] parts = jobId.split("_");
+        long timeScope=0L;
+        int id=0;
+        if (parts.length == 3 && parts[0].equals("job")) {
+            timeScope=Long.parseLong(parts[1]);
+            id=Integer.parseInt(parts[2]);
+        }else{
+            throw new Exception("jobId format wrong!");
+        }
+        ApplicationId appId=ApplicationId.newInstance(timeScope,id) ;
+        try {
+            yarnClient.killApplication(appId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+
+    public String getStatus(String jobId) throws Exception {
+        Configuration conf = new Configuration();
+        conf = loadConf();
+        JobClient job = new JobClient(conf);
+        RunningJob jobStatus = job.getJob(jobId);
+        System.out.print(jobStatus.toString());
+        int statusInt = jobStatus.getJobStatus().getRunState();
+        return jobStatus.getJobStatus().getJobRunState(statusInt);
     }
 
     public static Configuration loadConfigFiles(String[] fileNames) {
@@ -164,11 +207,33 @@ public class MRProgramRunnerImpl {
         for (String configFile : fileNames) {
             File file = new File(configFile);
             if (file.exists()) {
-                config.addResource(configFile);
-                LOG.debug("load configfile:" + configFile);
+                try {
+                    URL url = file.toURI().toURL();
+                    config.addResource(url);
+                    LOG.debug("load configfile:" + configFile);
+                } catch (Exception e) {
+                    LOG.error(e.getMessage());
+                }
+            } else {
+                LOG.warn("configfile:" + configFile + "not exists!");
             }
         }
         return config;
 
+    }
+
+    public Configuration loadConf() {
+        String configPath = new String();
+        try {
+            configPath = System.getProperty("HADOOP_CONF_DIR");
+        } catch (IllegalArgumentException e) {
+            System.out.println("HADOOP_CONF_DIR need be set in local env" + e);
+
+        }
+        List<String> fileNames = new ArrayList<>();
+        for (String f : HADOOP_SITE_FILES) {
+            fileNames.add(configPath + "\\" + f);
+        }
+        return loadConfigFiles(fileNames.toArray(new String[fileNames.size()]));
     }
 }
