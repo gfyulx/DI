@@ -62,7 +62,7 @@ public class JdbcSourceTest implements Serializable {
         apply.print();
 */
        // students.print();
-        //自定义的source不能直接使用.print()方法，改为下面的方式输出。
+        //自定义的source不能直接使用.print()方法，改为下面的方式输出---有误，在addsource时添加returns(xxx.class)。
         //PrintSinkFunction<TestStruct> printFunction = new PrintSinkFunction();
         //students.addSink(printFunction).name("Print to Std. Out");
         DataStream<String> newDS=students.map(new MapFunction<TestStruct, String>() {

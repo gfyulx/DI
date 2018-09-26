@@ -68,7 +68,6 @@ public class JdbcSource<T> extends RichSourceFunction<T> {
                 for (Constructor x : c) {
                     //System.out.println(x.getParameterCount()+" "+fields.length+x.getParameterTypes());
                     if (x.getParameterCount() == fields.length) {
-                        //T dataNew=(Class)T.newInstance();
                         Object dataNew = x.newInstance(obj);
                         sourceContext.collect((T) dataNew);
                     }
