@@ -24,6 +24,7 @@ import java.sql.ResultSet;
  * @date: 2018/9/21 14:32
  * @Copyright: 2018 gfyulx
  */
+//TODO通过类型注册以加速flink序列化的处理性能。
 //public class JdbcSource<T> extends RichSourceFunction<T>  implements ResultTypeQueryable<T> {
 public class JdbcSource<T> extends RichSourceFunction<T> {
     PreparedStatement ps;

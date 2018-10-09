@@ -28,7 +28,7 @@ import java.util.List;
  * @Copyright: 2018 gfyulx
  */
 public class MRJobSubmit {
-    private static final Logger LOG = LoggerFactory.getLogger(MRJobSubmit.class);
+    //private static final Logger LOG = LoggerFactory.getLogger(MRJobSubmit.class);
 
     public void submit(Configuration config) throws Exception {
         Configuration conf = new Configuration();

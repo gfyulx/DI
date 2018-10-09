@@ -100,14 +100,14 @@ public class SparkMain extends Submit {
         // Harvesting and recording Hadoop Job IDs
         String jobIds = common.getHadoopJobIds(logFile, patterns);
         if (jobIds != null) {
-            File externalChildIdsFile = new File(System.getProperty(EXTERNAL_CHILD_IDS));
+            File externalChildIdsFile = new File(EXTERNAL_CHILD_IDS);
             try (OutputStream externalChildIdsStream = new FileOutputStream(externalChildIdsFile)) {
                 externalChildIdsStream.write(jobIds.getBytes());
                 System.out.println("Hadoop Job IDs executed by " + name + ": " + jobIds);
                 System.out.println();
             } catch (IOException e) {
                 System.out.println("WARN: Error while writing to external child ids file: " +
-                        System.getProperty(EXTERNAL_CHILD_IDS));
+                        EXTERNAL_CHILD_IDS);
                 e.printStackTrace(System.out);
             }
         } else {
