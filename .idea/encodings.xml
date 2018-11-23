@@ -3,6 +3,7 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/comm" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/flink" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/hadoop" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/schedule" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/spark" charset="UTF-8" />

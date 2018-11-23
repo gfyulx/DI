@@ -16,7 +16,7 @@
         <spark.version>2.2.0</spark.version>
         <scala.version>2.11</scala.version>
         <hadoop.version>2.6.1</hadoop.version>
-        <hive.version>1.2.1</hive.version>
+        <hive.version>2.0.0</hive.version>
     </properties>
 
     <modules>
@@ -24,6 +24,7 @@
         <module>hadoop</module>
         <module>schedule</module>
         <module>spark</module>
+        <module>flink</module>
 
     </modules>
     <dependencies>

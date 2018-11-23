@@ -36,6 +36,8 @@ public class JdbcSourceTest implements Serializable {
         TestStruct testStruct=new TestStruct();
         //1.创建流执行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        //远程提交
+        StreamExecutionEnvironment env1= StreamExecutionEnvironment.createRemoteEnvironment("192.168.6.188",6123,"xxx.jar");
         //2.从自定义source中读取数据
         DataStream<TestStruct> students=env.addSource(new JdbcSource<TestStruct>(conf,testStruct)).returns(TestStruct.class);
         //3.显示结果

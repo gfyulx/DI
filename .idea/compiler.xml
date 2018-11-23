@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="comm" />
+        <module name="flink" />
         <module name="gfyulx-common" />
         <module name="gfyulx-hadoop" />
         <module name="gfyulx-schedule" />

@@ -1,5 +1,8 @@
 package com.gfyulx.DI;
 
+
+import org.apache.hadoop.conf.Configuration;
+
 import java.lang.reflect.Field;
 import java.util.ResourceBundle;
 
@@ -14,6 +17,8 @@ import java.util.ResourceBundle;
 
 public class Application {
     public static void main(String agrs[]) {
+        Configuration conf=new Configuration();
+        System.out.println("test:"+conf.get("test"));
         System.out.println("all test!");
         String config = "hivejob";
         ResourceBundle resource = ResourceBundle.getBundle(config);
